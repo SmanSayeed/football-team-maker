@@ -12,14 +12,12 @@ export const apiSlice = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getTeams: builder.query({
-      query: () => 'teams',
-    }),
+    
     getPlayers: builder.query({
-      query: (teamId) => `teams/${teamId}/players`,
+      query: () => `markets/best-players?locale=US`,
     }),
     getCountries: builder.query({
-      query: () => '/static/countries?locale=DE',
+      query: () => '/static/countries?locale=US',
     }),
   }),
 });

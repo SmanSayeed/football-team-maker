@@ -1,18 +1,19 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    players: [],
-  }
+  players: [],
+};
 
-  export const playersSlice = createSlice({
-    name: 'players',
-    initialState,
-    reducers: {
-        setPlayers: (state, action) => {
-            state.players = action.payload
-        },
+export const playersSlice = createSlice({
+  name: 'players',
+  initialState,
+  reducers: {
+    setPlayers: (state, action) => {
+      state.players = action.payload;
     },
-  })
-  export const {setPlayers} = playersSlice.actions;
-  export const selectPlayers = (state) => state.players.players;
-  export default playersSlice.reducer;
+  },
+});
+
+export const { setPlayers } = playersSlice.actions;
+export const selectPlayers = (state) => state.players.players;
+export default playersSlice.reducer;

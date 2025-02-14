@@ -76,7 +76,8 @@ const PlayerGrid = () => {
             sm={6} 
             md={4} 
             lg={3} 
-            key={player.id}
+            // Create unique key by combining id and year
+            key={`${player.id}-${player.year}`}
             ref={index === displayedPlayers.length - 1 ? lastPlayerRef : null}
           >
             <PlayerCard 

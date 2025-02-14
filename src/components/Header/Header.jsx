@@ -1,7 +1,6 @@
 // src/components/Header/Header.jsx
 import { AppBar, Box, Button, Toolbar } from '@mui/material';
 import Logo from '../../submodule/ui/Logo/Logo';
-import SearchInput from '../../submodule/ui/SeachInput/SearchInput';
 import AddIcon from '@mui/icons-material/Add';
 import SearchPlayer from '../SearchPlayer/SearchPlayer';
 

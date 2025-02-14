@@ -25,4 +25,4 @@ export const apiSlice = createApi({
   }),
 });
 
-export const { userSearchPlayersQuery, useGetPlayersQuery, useGetCountriesQuery } = apiSlice;
+export const {   useSearchPlayersQuery, useGetPlayersQuery, useGetCountriesQuery } = apiSlice;

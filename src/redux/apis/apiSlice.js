@@ -16,10 +16,13 @@ export const apiSlice = createApi({
     getPlayers: builder.query({
       query: () => `markets/best-players?locale=US`,
     }),
+    searchPlayers: builder.query({
+      query: (query) => `search/full-search?locale=US&search_type=players&page_number=0&query=${query}`,
+    }),
     getCountries: builder.query({
       query: () => '/static/countries?locale=US',
     }),
   }),
 });
 
-export const { useGetTeamsQuery, useGetPlayersQuery, useGetCountriesQuery } = apiSlice;
+export const { userSearchPlayersQuery, useGetPlayersQuery, useGetCountriesQuery } = apiSlice;

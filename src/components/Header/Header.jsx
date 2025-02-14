@@ -3,6 +3,7 @@ import { AppBar, Box, Button, Toolbar } from '@mui/material';
 import Logo from '../../submodule/ui/Logo/Logo';
 import SearchInput from '../../submodule/ui/SeachInput/SearchInput';
 import AddIcon from '@mui/icons-material/Add';
+import SearchPlayer from '../SearchPlayer/SearchPlayer';
 
 const Header = () => {
   return (
@@ -18,9 +19,7 @@ const Header = () => {
           justifyContent: { xs: 'flex-end', md: 'initial' },
           ml: { xs: 2, md: 4 }
         }}>
-          <Box sx={{ display: { xs: 'none', md: 'block' }, width: 300 }}>
-            <SearchInput fullWidth placeholder="Search players..." />
-          </Box>
+         <SearchPlayer/>
           
           <Button
             variant="contained"

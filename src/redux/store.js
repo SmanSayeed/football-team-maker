@@ -20,12 +20,12 @@ const persistConfig = {
 };
 
 const persistedCountryReducer = persistReducer(persistConfig, countryReducer);
-const persistedPlayersReducer = persistReducer(persistConfig, playersReducer);
+// const persistedPlayersReducer = persistReducer(persistConfig, playersReducer);
 
 export const store = configureStore({
   reducer: {
     countries: persistedCountryReducer,
-    players: persistedPlayersReducer,
+    players: playersReducer,
     [apiSlice.reducerPath]: apiSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>

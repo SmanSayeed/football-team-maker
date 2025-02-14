@@ -39,7 +39,7 @@ const Header = () => {
         p: 2,
         backgroundColor: 'white'
       }}>
-        <SearchInput fullWidth placeholder="Search players..." />
+           <SearchPlayer/>
       </Box>
     </AppBar>
   );

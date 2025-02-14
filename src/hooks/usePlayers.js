@@ -1,5 +1,4 @@
-// src/hooks/usePlayers.js
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectPlayers, setPlayers } from '../redux/slices/playersSlice';
 import { useGetPlayersQuery } from '../redux/apis/apiSlice';
@@ -7,30 +6,23 @@ import { useGetPlayersQuery } from '../redux/apis/apiSlice';
 export const usePlayers = () => {
   const dispatch = useDispatch();
   const players = useSelector(selectPlayers);
+  const initialFetchDone = useRef(false);
 
-  // Only call the API if players are not already in Redux
-  const { data: playersData, isSuccess: isPlayersSuccess } = useGetPlayersQuery(
-    undefined,
-    {
-      skip: players.length > 0,
-    }
-  );
+  // Remove the skip option to allow refetching
+  const { 
+    data: playersData, 
+    isSuccess: isPlayersSuccess,
+    refetch,
+    isLoading: isRefetching 
+  } = useGetPlayersQuery();
 
   useEffect(() => {
-    if (!players.length && isPlayersSuccess && playersData?.data?.player.length) {
-      dispatch(setPlayers(playersData?.data?.player));
+    // Only update Redux on initial fetch or when explicitly refetching
+    if (isPlayersSuccess && playersData?.data?.player && !initialFetchDone.current) {
+      dispatch(setPlayers(playersData.data.player));
+      initialFetchDone.current = true;
     }
-  }, [players, playersData, isPlayersSuccess, dispatch]);
-
-  // Add functions for filtering and searching
-  const searchPlayers = (searchTerm) => {
-    if (!playersData?.data?.player) return;
-    
-    const filteredPlayers = playersData.data.player.filter(player => 
-      player.playerName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    dispatch(setPlayers(filteredPlayers));
-  };
+  }, [playersData, isPlayersSuccess, dispatch]);
 
   const filterPlayers = ({ country, club, minValue, maxValue, minAge, maxAge }) => {
     if (!playersData?.data?.player) return;
@@ -52,17 +44,23 @@ export const usePlayers = () => {
     dispatch(setPlayers(filteredPlayers));
   };
 
-  const resetPlayers = () => {
-    if (playersData?.data?.player) {
-      dispatch(setPlayers(playersData.data.player));
+  const resetPlayers = async () => {
+    try {
+      const result = await refetch();
+      if (result.data?.data?.player) {
+        dispatch(setPlayers(result.data.data.player));
+      }
+      return result;
+    } catch (error) {
+      console.error('Error refetching players:', error);
+      throw error;
     }
   };
 
   return {
     players,
-    searchPlayers,
     filterPlayers,
     resetPlayers,
-    isLoading: !isPlayersSuccess
+    isLoading: !isPlayersSuccess || isRefetching
   };
 };

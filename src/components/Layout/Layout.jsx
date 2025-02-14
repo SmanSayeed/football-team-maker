@@ -7,10 +7,7 @@ import { usePlayers } from '../../hooks/usePlayers';
 import { useCountries } from '../../hooks/useCountries';
 
 export default function Layout() {
-  // Use custom hooks
-  const { players, isLoading: playersLoading } = usePlayers();
-  const { countries, isLoading: countriesLoading } = useCountries();
-
+ 
   return (
     <Box sx={{ 
       display: 'flex', 

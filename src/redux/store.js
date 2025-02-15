@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { apiSlice } from './apis/apiSlice';
 import countryReducer from './slices/countrySlice';
 import playersReducer from './slices/playersSlice';
+import clubsReducer from './slices/clubSlice';
 import {
   persistStore,
   persistReducer,
@@ -25,6 +26,7 @@ const persistedCountryReducer = persistReducer(persistConfig, countryReducer);
 export const store = configureStore({
   reducer: {
     countries: persistedCountryReducer,
+    clubs: clubsReducer,
     players: playersReducer,
     [apiSlice.reducerPath]: apiSlice.reducer,
   },

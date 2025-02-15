@@ -6,9 +6,11 @@ import RangeFilter from '../../submodule/ui/RangeFilter/RangeFilter';
 import { useCountries } from '../../hooks/useCountries';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CloseIcon from '@mui/icons-material/Close';
+import { useClubs } from '../../hooks/useClubs';
 
 const PlayerFilters = ({ onFilter, onClear }) => {
   const { countries } = useCountries();
+  const {clubs} = useClubs();
   const [filters, setFilters] = useState({
     country: '',
     club: '',
@@ -19,8 +21,7 @@ const PlayerFilters = ({ onFilter, onClear }) => {
   });
 
   // Get unique clubs from players
-  const clubs = []; // This should be populated from your players data
-console.log("countries ", countries);
+console.log("clubs ", clubs);
   const countryOptions =countries.length>0 && countries.map(country => ({
     value: country.id,
     label: country.name

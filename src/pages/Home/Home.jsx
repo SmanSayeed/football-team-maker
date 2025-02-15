@@ -4,9 +4,10 @@ import { Box } from '@mui/material';
 import PlayerGrid from '../../components/PlayerGrid/PlayerGrid';
 import HomeTitle from './HomeTitle';
 import { useCountries } from '../../hooks/useCountries';
+import { useClubs } from '../../hooks/useClubs';
 
 const Home = () => {
-  const { countries } = useCountries();
+ 
   return (
     <Box sx={{ p: 3 }}>
       <HomeTitle/>

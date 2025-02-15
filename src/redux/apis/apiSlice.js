@@ -25,7 +25,10 @@ export const apiSlice = createApi({
     getCountries: builder.query({
       query: () => '/static/countries?locale=US',
     }),
+    getClubs: builder.query({
+      query: () => '/competitions/clubs?competition_id=GB1&locale=US',
+    }),
   }),
 });
 
-export const {   useSearchPlayersQuery, useGetPlayersQuery, useGetCountriesQuery,usePlayerInfoQuery } = apiSlice;
+export const {   useSearchPlayersQuery, useGetPlayersQuery, useGetCountriesQuery,usePlayerInfoQuery, useGetClubsQuery } = apiSlice;

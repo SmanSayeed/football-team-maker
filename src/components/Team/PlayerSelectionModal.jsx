@@ -26,10 +26,18 @@ const POSITION_MAPPINGS = {
   'forwards': ['Centre-Forward', 'Second Striker', 'Right Winger', 'Left Winger']
 };
 
+const getPositionDisplayName = (category) => {
+  if (!category) return 'Select Player';
+  
+  // Remove 's' from the end if it exists and capitalize first letter
+  const singularForm = category.endsWith('s') ? category.slice(0, -1) : category;
+  return singularForm.charAt(0).toUpperCase() + singularForm.slice(1);
+};
+
 const PlayerSelectionModal = ({ 
   open, 
   onClose, 
-  category,
+  category = '',
   validations,
   limit,
   current
@@ -41,13 +49,13 @@ const PlayerSelectionModal = ({
   const teamPlayers = useSelector(selectPlayers);
 
   const eligiblePlayers = useMemo(() => {
-    if (!players) return [];
+    if (!players || !category) return [];
 
     const positionFilter = player => 
-      POSITION_MAPPINGS[category].some(position => 
+      POSITION_MAPPINGS[category]?.some(position => 
         player.mainPosition?.includes(position) || 
         position.includes(player.mainPosition)
-      );
+      ) || false;
 
     // Get all selected player IDs to exclude
     const selectedIds = new Set([
@@ -59,7 +67,6 @@ const PlayerSelectionModal = ({
 
     return players
       .filter(player => 
-        positionFilter(player) && 
         !selectedIds.has(player.id) &&
         (!searchTerm || 
           player.playerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -78,18 +85,19 @@ const PlayerSelectionModal = ({
   };
 
   const handleConfirmSelection = () => {
-    if (selectedPlayer) {
-      if (category === 'goalkeeper') {
-        dispatch(setGoalkeeper(selectedPlayer));
-      } else {
-        dispatch(addPlayer({ position: category, player: selectedPlayer }));
-      }
-      onClose();
+    if (!selectedPlayer || !category) return;
+
+    if (category === 'goalkeeper') {
+      dispatch(setGoalkeeper(selectedPlayer));
+    } else {
+      dispatch(addPlayer({ position: category, player: selectedPlayer }));
     }
+    onClose();
   };
 
   const validateSelection = (player) => {
     if (!player) return { valid: false, message: 'No player selected' };
+    if (!category) return { valid: false, message: 'No position selected' };
 
     const allPlayers = [
       ...teamPlayers.defenders,
@@ -121,93 +129,110 @@ const PlayerSelectionModal = ({
 
   const selectionValidation = selectedPlayer ? validateSelection(selectedPlayer) : null;
 
+  // Reset state when modal closes
+  const handleClose = () => {
+    setSearchTerm('');
+    setSelectedPlayer(null);
+    onClose();
+  };
+
   return (
     <Modal
       open={open}
-      onClose={onClose}
-      title={`Select ${category.charAt(0).toUpperCase() + category.slice(1, -1)}`}
+      onClose={handleClose}
+      title={getPositionDisplayName(category)}
       maxWidth="md"
     >
-      <Box sx={{ mb: 3 }}>
-        <SearchInput
-          placeholder="Search by player or club name..."
-          value={searchTerm}
-          onChange={handleSearch}
-          fullWidth
-        />
-      </Box>
+      {category ? (
+        <>
+          <Box sx={{ mb: 3 }}>
+            <SearchInput
+              placeholder="Search by player or club name..."
+              value={searchTerm}
+              onChange={handleSearch}
+              fullWidth
+            />
+          </Box>
 
-      {selectedPlayer && !selectionValidation?.valid && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          {selectionValidation.message}
-        </Alert>
-      )}
+          {selectedPlayer && !selectionValidation?.valid && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {selectionValidation.message}
+            </Alert>
+          )}
 
-      <TableContainer component={Paper} sx={{ mb: 3 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Age</TableCell>
-              <TableCell>Club</TableCell>
-              <TableCell>Country</TableCell>
-              <TableCell>Position</TableCell>
-              <TableCell>Market Value</TableCell>
-              <TableCell align="right">Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {eligiblePlayers.map((player) => (
-              <TableRow 
-                key={player.id}
-                selected={selectedPlayer?.id === player.id}
-                hover
-                sx={{ cursor: 'pointer' }}
-                onClick={() => handleSelectPlayer(player)}
-              >
-                <TableCell>{player.playerName}</TableCell>
-                <TableCell>{player.ageAtThisTime}</TableCell>
-                <TableCell>{player.clubName}</TableCell>
-                <TableCell>
-                  <img 
-                    src={player.countryImage} 
-                    alt="country"
-                    style={{ width: 20, height: 'auto' }}
-                  />
-                </TableCell>
-                <TableCell>{player.mainPosition}</TableCell>
-                <TableCell>
-                  {player.marketValueAtThisTime}
-                  {player.marketValueAtThisTimeCurrency}
-                  {player.marketValueAtThisTimeNumeral}
-                </TableCell>
-                <TableCell align="right">
-                  <Button
-                    variant="contained"
-                    size="small"
+          <TableContainer component={Paper} sx={{ mb: 3 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Age</TableCell>
+                  <TableCell>Club</TableCell>
+                  <TableCell>Country</TableCell>
+                  <TableCell>Position</TableCell>
+                  <TableCell>Market Value</TableCell>
+                  <TableCell align="right">Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {eligiblePlayers.map((player) => (
+                  <TableRow 
+                    key={player.id}
+                    selected={selectedPlayer?.id === player.id}
+                    hover
+                    sx={{ cursor: 'pointer' }}
                     onClick={() => handleSelectPlayer(player)}
                   >
-                    Select
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                    <TableCell>{player.playerName}</TableCell>
+                    <TableCell>{player.ageAtThisTime}</TableCell>
+                    <TableCell>{player.clubName}</TableCell>
+                    <TableCell>
+                      <img 
+                        src={player.countryImage} 
+                        alt="country"
+                        style={{ width: 20, height: 'auto' }}
+                      />
+                    </TableCell>
+                    <TableCell>{player.mainPosition}</TableCell>
+                    <TableCell>
+                      {player.marketValueAtThisTime}
+                      {player.marketValueAtThisTimeCurrency}
+                      {player.marketValueAtThisTimeNumeral}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleSelectPlayer(player)}
+                      >
+                        Select
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-        <Button onClick={onClose}>
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleConfirmSelection}
-          disabled={!selectedPlayer || !selectionValidation?.valid}
-        >
-          Confirm Selection
-        </Button>
-      </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <Button onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleConfirmSelection}
+              disabled={!selectedPlayer || !selectionValidation?.valid}
+            >
+              Confirm Selection
+            </Button>
+          </Box>
+        </>
+      ) : (
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Typography color="error">
+            No position category selected. Please try again.
+          </Typography>
+        </Box>
+      )}
     </Modal>
   );
 };

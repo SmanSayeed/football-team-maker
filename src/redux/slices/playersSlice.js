@@ -22,4 +22,4 @@ export const playersSlice = createSlice({
 export const { setPlayers, setFilteredPlayers } = playersSlice.actions;
 export const selectPlayers = (state) => state.players.players;
 export const selectFilteredPlayers = (state) => state.players.filteredPlayers;
-export default playersSlice.reducer;
+export default playersSlice.reducer;  

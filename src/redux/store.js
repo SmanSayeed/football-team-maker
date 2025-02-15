@@ -27,7 +27,7 @@ const persistConfig = {
 const teamPersistConfig = {
   key: 'team',
   storage,
-  whitelist: ['formation', 'players', 'totalBudget', 'averageAge'] // Only persist these fields
+  whitelist: ['formation', 'players', 'totalBudget'] // Only persist these fields
 };
 
 // Create persisted reducers

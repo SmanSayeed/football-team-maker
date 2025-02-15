@@ -18,10 +18,10 @@ import {
   selectFormation,
   selectPlayers,
   selectTotalBudget,
-  selectAverageAge
 } from '../../redux/slices/teamSlice';
 import PlayerSelection from './PlayerSelection';
 import TeamOverview from './TeamOverview';
+import PositionView from './PostionView';
 
 const FORMATIONS = ['4-3-3', '4-4-2', '3-4-3', '5-2-3', '5-3-2'];
 
@@ -30,7 +30,6 @@ const CreateTeam = () => {
   const formation = useSelector(selectFormation);
   const players = useSelector(selectPlayers);
   const totalBudget = useSelector(selectTotalBudget);
-  const averageAge = useSelector(selectAverageAge);
 
   const handleFormationChange = (event) => {
     dispatch(setFormation(event.target.value));
@@ -56,13 +55,13 @@ const CreateTeam = () => {
 
     return {
       budgetValid: totalBudget >= 300 && totalBudget <= 700,
-      ageValid: averageAge >= 25 && averageAge <= 27,
+     
       clubValid: clubViolations.length === 0,
       countryValid: countryViolations.length === 0,
       clubViolations,
       countryViolations
     };
-  }, [players, totalBudget, averageAge]);
+  }, [players, totalBudget]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -90,12 +89,7 @@ const CreateTeam = () => {
           </Alert>
         )}
 
-        {!validations.ageValid && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
-            Team average age must be between 25 and 27. Current: {averageAge.toFixed(1)}
-          </Alert>
-        )}
-
+        
         {!validations.clubValid && (
           <Alert severity="warning" sx={{ mb: 2 }}>
             Maximum 2 players allowed from the same club. Violations: {validations.clubViolations.join(', ')}
@@ -116,6 +110,7 @@ const CreateTeam = () => {
             validations={validations}
           />
           <TeamOverview />
+          <PositionView/>
         </>
       )}
     </Box>

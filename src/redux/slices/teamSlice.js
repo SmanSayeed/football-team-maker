@@ -10,7 +10,6 @@ const initialState = {
     goalkeeper: null
   },
   totalBudget: 0,
-  averageAge: 0
 };
 
 const formationLimits = {
@@ -32,18 +31,17 @@ export const teamSlice = createSlice({
       const { position, player } = action.payload;
       state.players[position].push(player);
       state.totalBudget = calculateTotalBudget(state.players);
-      state.averageAge = calculateAverageAge(state.players);
+    
     },
     removePlayer: (state, action) => {
       const { position, playerId } = action.payload;
       state.players[position] = state.players[position].filter(p => p.id !== playerId);
       state.totalBudget = calculateTotalBudget(state.players);
-      state.averageAge = calculateAverageAge(state.players);
     },
     setGoalkeeper: (state, action) => {
       state.players.goalkeeper = action.payload;
       state.totalBudget = calculateTotalBudget(state.players);
-      state.averageAge = calculateAverageAge(state.players);
+    
     },
     resetTeam: (state) => {
       return initialState;
@@ -64,16 +62,7 @@ const calculateTotalBudget = (players) => {
   return total;
 };
 
-const calculateAverageAge = (players) => {
-  const allPlayers = Object.values(players).flat().filter(Boolean);
-  if (allPlayers.length === 0) return 0;
-  
-  const totalAge = allPlayers.reduce((sum, player) => {
-    return sum + parseInt(player.ageAtThisTime);
-  }, 0);
-  
-  return totalAge / allPlayers.length;
-};
+
 
 export const { 
   setFormation, 
@@ -87,6 +76,6 @@ export const selectTeam = (state) => state.team;
 export const selectFormation = (state) => state.team.formation;
 export const selectPlayers = (state) => state.team.players;
 export const selectTotalBudget = (state) => state.team.totalBudget;
-export const selectAverageAge = (state) => state.team.averageAge;
+
 
 export default teamSlice.reducer;

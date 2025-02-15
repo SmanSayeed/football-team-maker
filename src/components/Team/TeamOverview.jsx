@@ -11,7 +11,7 @@ import {
     IconButton
   } from '@mui/material';
   import { useSelector } from 'react-redux';
-  import { selectPlayers, selectFormation, selectTotalBudget, selectAverageAge } from '../../redux/slices/teamSlice';
+  import { selectPlayers, selectFormation, selectTotalBudget } from '../../redux/slices/teamSlice';
   import InfoIcon from '@mui/icons-material/Info';
   import { useState } from 'react';
   import PlayerInfoModal from './PlayerInfoModal';
@@ -20,7 +20,6 @@ import {
     const players = useSelector(selectPlayers);
     const formation = useSelector(selectFormation);
     const totalBudget = useSelector(selectTotalBudget);
-    const averageAge = useSelector(selectAverageAge);
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [infoModalOpen, setInfoModalOpen] = useState(false);
   
@@ -53,14 +52,7 @@ import {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6">Average Age</Typography>
-                  <Typography variant="h4">{averageAge.toFixed(1)}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+            
           </Grid>
   
           <Box 

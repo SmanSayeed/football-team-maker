@@ -1,19 +1,17 @@
-import React from 'react'
-import PlayerGrid from '../../components/PlayerGrid/PlayerGrid'
-import { usePlayers } from '../../hooks/usePlayers';
-import { useCountries } from '../../hooks/useCountries';
+// src/pages/Home.jsx
+import React from 'react';
+import { Box } from '@mui/material';
+import PlayerGrid from '../../components/PlayerGrid/PlayerGrid';
+import HomeTitle from './HomeTitle';
 
-export default function Home() {
-   // Use custom hooks
-   const { players, isLoading: playersLoading } = usePlayers();
-   const { countries, isLoading: countriesLoading } = useCountries();
- 
+const Home = () => {
   return (
-    <>
-      <h1>Home</h1>
-      <p>Click on a player to view details</p>
-      <hr/>
-   <PlayerGrid />
-    </>
-  )
-}
+    <Box sx={{ p: 3 }}>
+      <HomeTitle/>
+
+      <PlayerGrid />
+    </Box>
+  );
+};
+
+export default Home;

@@ -1,17 +1,8 @@
-import { useEffect } from "react";
 import "./App.css";
-import Button from "./submodule/ui/Button/Button";
-import {
-  useGetCountriesQuery,
-  useGetPlayersQuery,
-} from "./redux/apis/apiSlice";
-import config from "./config/config";
-import { useDispatch, useSelector } from "react-redux";
-import { selectCountries, setCountries } from "./redux/slices/countrySlice";
-import { selectPlayers, setPlayers } from "./redux/slices/playersSlice";
-import { BrowserRouter, Route, Router, Routes } from "react-router";
+import { BrowserRouter, Route, Routes } from "react-router";
 import Home from "./pages/Home/Home";
 import Layout from "./components/Layout/Layout";
+import CreateTeamPage from "./pages/CreateTeam/CreateTeam";
 
 function App() {
   
@@ -23,7 +14,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-        
+          <Route path="create-team" element={<CreateTeamPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

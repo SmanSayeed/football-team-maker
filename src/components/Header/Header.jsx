@@ -3,6 +3,7 @@ import { AppBar, Box, Button, Toolbar } from '@mui/material';
 import Logo from '../../submodule/ui/Logo/Logo';
 import AddIcon from '@mui/icons-material/Add';
 import SearchPlayer from '../SearchPlayer/SearchPlayer';
+import { Link } from 'react-router';
 
 const Header = () => {
   return (
@@ -20,6 +21,7 @@ const Header = () => {
         }}>
          <SearchPlayer/>
           
+          <Link to="create-team">
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -27,9 +29,12 @@ const Header = () => {
               borderRadius: '20px',
               whiteSpace: 'nowrap'
             }}
+         
           >
             Create Team
           </Button>
+          </Link>
+          
         </Box>
       </Toolbar>
       

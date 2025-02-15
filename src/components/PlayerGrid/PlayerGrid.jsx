@@ -130,23 +130,46 @@ const PlayerGrid = () => {
           </Box>
         </Box>
       ) : (
-        <Grid container spacing={3}>
-          {displayedPlayers.map((player, index) => (
-            <Grid 
-              xs={12} 
-              sm={6} 
-              md={4} 
-              lg={3} 
-              key={`${player.id}-${index}`}
-              ref={index === displayedPlayers.length - 1 ? lastPlayerRef : null}
-            >
-              <PlayerCard 
-                player={player} 
-                onClick={() => handleCardClick(player)}
-              />
-            </Grid>
-          ))}
-        </Grid>
+        <Box sx={{ 
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center'
+        }}>
+          <Grid 
+            container 
+            spacing={3} 
+            sx={{ 
+              maxWidth: { 
+                xs: 320, // One card width + spacing
+                sm: 656, // Two cards + spacing
+                md: 984, // Three cards + spacing
+                lg: 1312 // Four cards + spacing
+              },
+              mx: 'auto'
+            }}
+          >
+            {displayedPlayers.map((player, index) => (
+              <Grid 
+                item 
+                xs={12} 
+                sm={6} 
+                md={4} 
+                lg={3} 
+                key={`${player.id}-${index}`}
+                ref={index === displayedPlayers.length - 1 ? lastPlayerRef : null}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}
+              >
+                <PlayerCard 
+                  player={player} 
+                  onClick={() => handleCardClick(player)}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
       )}
 
       {(loading || isRefreshing) && (

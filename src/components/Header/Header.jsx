@@ -1,51 +1,75 @@
+
 // src/components/Header/Header.jsx
-import { AppBar, Box, Button, Toolbar } from '@mui/material';
+import { AppBar, Box, Button, Toolbar, useTheme, useMediaQuery } from '@mui/material';
 import Logo from '../../submodule/ui/Logo/Logo';
 import AddIcon from '@mui/icons-material/Add';
 import SearchPlayer from '../SearchPlayer/SearchPlayer';
 import { Link } from 'react-router';
 
 const Header = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   return (
-    <AppBar position="fixed" sx={{ backgroundColor: 'white', boxShadow: 1 }}>
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
-        <Logo />
-        
-        <Box sx={{ 
-          display: 'flex', 
-          gap: 2, 
-          alignItems: 'center',
-          flex: { xs: 1, md: 'initial' },
-          justifyContent: { xs: 'flex-end', md: 'initial' },
-          ml: { xs: 2, md: 4 }
-        }}>
-         <SearchPlayer/>
+    <AppBar 
+      position="fixed" 
+      sx={{ 
+        backgroundColor: 'white', 
+        boxShadow: 1,
+      }}
+    >
+      <Toolbar>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            width: '100%',
+            gap: { xs: 1, md: 3 }
+          }}
+        >
+          <Logo />
           
-          <Link to="create-team">
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{
-              borderRadius: '20px',
-              whiteSpace: 'nowrap'
-            }}
-         
-          >
-            Create Team
-          </Button>
-          </Link>
+          {!isMobile && (
+            <Box sx={{ flex: 1, maxWidth: 300 }}>
+              <SearchPlayer />
+            </Box>
+          )}
           
+          <Box sx={{ ml: 'auto' }}>
+            <Link 
+              to="/create-team" 
+              style={{ textDecoration: 'none' }}
+            >
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                sx={{
+                  borderRadius: '20px',
+                  whiteSpace: 'nowrap',
+                  textTransform: 'none',
+                  px: 2,
+                }}
+              >
+                Create Team
+              </Button>
+            </Link>
+          </Box>
         </Box>
       </Toolbar>
-      
-      {/* Mobile Search */}
-      <Box sx={{ 
-        display: { xs: 'block', md: 'none' },
-        p: 2,
-        backgroundColor: 'white'
-      }}>
-           <SearchPlayer/>
-      </Box>
+
+      {isMobile && (
+        <Box 
+          sx={{ 
+            p: 2,
+            borderTop: 1,
+            borderColor: 'divider',
+            backgroundColor: 'white'
+          }}
+        >
+          <SearchPlayer />
+        </Box>
+      )}
     </AppBar>
   );
 };

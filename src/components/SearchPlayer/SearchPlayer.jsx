@@ -1,4 +1,4 @@
-// SearchPlayer.jsx
+// src/components/SearchPlayer/SearchPlayer.jsx
 import { Box, IconButton, InputAdornment } from "@mui/material";
 import { useEffect, useState, useCallback, useRef } from "react";
 import SearchInput from "../../submodule/ui/SearchInput/SearchInput";
@@ -25,7 +25,7 @@ const processSearchResult = (player) => {
   };
 };
 
-export default function SearchPlayer() {
+const SearchPlayer = () => {
   const [inputValue, setInputValue] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showClear, setShowClear] = useState(false);
@@ -46,7 +46,6 @@ export default function SearchPlayer() {
     refetchOnMountOrArgChange: true,
   });
 
-  // Debounced search function
   const debouncedSearch = useCallback(
     debounce((term) => {
       if (!isMounted.current) return;
@@ -77,10 +76,9 @@ export default function SearchPlayer() {
     setInputValue("");
     setSearchTerm("");
     setShowClear(false);
-    resetPlayers(); // Reset to initial players
+    resetPlayers();
   }, [resetPlayers]);
 
-  // Process search results
   useEffect(() => {
     if (!isMounted.current) return;
     
@@ -88,9 +86,7 @@ export default function SearchPlayer() {
 
     if (searchTerm && searchData?.data?.players) {
       try {
-        // Ensure we're handling the most recent search request
         if (currentRequestId === searchRequestCounter.current) {
-          // Process and map search results directly
           const processedPlayers = searchData.data.players
             .map(processSearchResult)
             .filter(Boolean);
@@ -108,7 +104,6 @@ export default function SearchPlayer() {
     }
   }, [searchData, dispatch, searchTerm]);
 
-  // Handle search errors
   useEffect(() => {
     if (error && isMounted.current) {
       console.error('Search API error:', error);
@@ -116,29 +111,8 @@ export default function SearchPlayer() {
     }
   }, [error, dispatch]);
 
-  const endAdornment = showClear ? (
-    <InputAdornment position="end">
-      <IconButton
-        size="small"
-        onClick={handleClearSearch}
-        sx={{ 
-          p: 0.5,
-          '&:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.04)'
-          }
-        }}
-      >
-        <ClearIcon fontSize="small" />
-      </IconButton>
-    </InputAdornment>
-  ) : undefined;
-
   return (
-    <Box sx={{ 
-      display: { xs: "none", md: "block" }, 
-      width: 300,
-      position: 'relative'
-    }}>
+    <Box sx={{ width: '100%' }}>
       <SearchInput
         id="player-search"
         name="player-search"
@@ -148,12 +122,22 @@ export default function SearchPlayer() {
         onChange={handleSearch}
         disabled={isFetching}
         InputProps={{ 
-          endAdornment,
-          sx: {
-            '& .MuiOutlinedInput-root': {
-              pr: showClear ? 1 : 2
-            }
-          }
+          endAdornment: showClear ? (
+            <InputAdornment position="end">
+              <IconButton
+                size="small"
+                onClick={handleClearSearch}
+                sx={{ 
+                  p: 0.5,
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                <ClearIcon fontSize="small" />
+              </IconButton>
+            </InputAdornment>
+          ) : undefined,
         }}
         sx={{
           '& .MuiOutlinedInput-root': {
@@ -170,4 +154,6 @@ export default function SearchPlayer() {
       />
     </Box>
   );
-}
+};
+
+export default SearchPlayer;

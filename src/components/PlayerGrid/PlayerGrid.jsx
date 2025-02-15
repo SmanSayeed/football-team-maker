@@ -1,16 +1,18 @@
-// PlayerGrid.jsx
+// src/components/PlayerGrid/PlayerGrid.jsx
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, IconButton, Tooltip } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useSelector } from 'react-redux';
 import { selectPlayers, selectFilteredPlayers } from '../../redux/slices/playersSlice';
 import PlayerCard from '../../submodule/ui/PlayerCard/PlayerCard';
+import Modal from '../../submodule/ui/Modal/Modal';
+import PlayerInfo from '../PlayerInfo/PlayerInfo';
 import Loader from '../../submodule/ui/Loader/Loader';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { usePlayers } from '../../hooks/usePlayers';
 
 const ITEMS_PER_PAGE = 20;
-const LOADING_DELAY = 500; // Reduced from 1000ms to 500ms for better responsiveness
+const LOADING_DELAY = 500;
 
 const processPlayerData = (player) => {
   if (!player) return null;
@@ -29,6 +31,8 @@ const PlayerGrid = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const observer = useRef();
   const timerRef = useRef();
   
@@ -51,6 +55,18 @@ const PlayerGrid = () => {
       setIsRefreshing(false);
       setLoading(false);
     }
+  };
+
+  const handleCardClick = (player) => {
+    setSelectedPlayer(player);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setTimeout(() => {
+      setSelectedPlayer(null);
+    }, 300);
   };
 
   const lastPlayerRef = useCallback(node => {
@@ -88,7 +104,7 @@ const PlayerGrid = () => {
       const processedPlayers = currentPlayers
         .slice(start, end)
         .map(processPlayerData)
-        .filter(Boolean); // Remove any null values
+        .filter(Boolean);
       
       setDisplayedPlayers(processedPlayers);
       setLoading(false);
@@ -100,11 +116,6 @@ const PlayerGrid = () => {
       }
     };
   }, [page, currentPlayers]);
-
-  const handleCardClick = (player) => {
-    console.log('Player clicked:', player);
-    // Implement modal display logic here
-  };
 
   if (!currentPlayers?.length && !loading && !isRefreshing) {
     return (
@@ -129,59 +140,72 @@ const PlayerGrid = () => {
   }
 
   return (
-    <Box sx={{ flexGrow: 1, py: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Tooltip title="Refresh players">
-          <IconButton 
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(25, 118, 210, 0.04)'
-              }
-            }}
-          >
-            <RefreshIcon 
-              sx={{ 
-                animation: isRefreshing ? 'spin 1s linear infinite' : 'none',
-                '@keyframes spin': {
-                  '0%': {
-                    transform: 'rotate(0deg)',
-                  },
-                  '100%': {
-                    transform: 'rotate(360deg)',
-                  },
-                },
-              }} 
-            />
-          </IconButton>
-        </Tooltip>
+    <>
+      <Box sx={{ flexGrow: 1, py: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+          <Tooltip title="Refresh players">
+            <span>
+              <IconButton 
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                sx={{
+                  '&:hover': {
+                    backgroundColor: 'rgba(25, 118, 210, 0.04)'
+                  }
+                }}
+              >
+                <RefreshIcon 
+                  sx={{ 
+                    animation: isRefreshing ? 'spin 1s linear infinite' : 'none',
+                    '@keyframes spin': {
+                      '0%': {
+                        transform: 'rotate(0deg)',
+                      },
+                      '100%': {
+                        transform: 'rotate(360deg)',
+                      },
+                    },
+                  }} 
+                />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Box>
+
+        <Grid container spacing={3}>
+          {displayedPlayers.map((player, index) => (
+            <Grid 
+              xs={12} 
+              sm={6} 
+              md={4} 
+              lg={3} 
+              key={`${player.id}-${index}`}
+              ref={index === displayedPlayers.length - 1 ? lastPlayerRef : null}
+            >
+              <PlayerCard 
+                player={player} 
+                onClick={() => handleCardClick(player)}
+              />
+            </Grid>
+          ))}
+        </Grid>
+        
+        {(loading || isRefreshing) && (
+          <Box sx={{ p: 3 }}>
+            <Loader text={isRefreshing ? "Refreshing players..." : "Loading more players..."} />
+          </Box>
+        )}
       </Box>
 
-      <Grid container spacing={3}>
-        {displayedPlayers.map((player, index) => (
-          <Grid 
-            xs={12} 
-            sm={6} 
-            md={4} 
-            lg={3} 
-            key={`${player.id}-${index}`}
-            ref={index === displayedPlayers.length - 1 ? lastPlayerRef : null}
-          >
-            <PlayerCard 
-              player={player} 
-              onClick={() => handleCardClick(player)}
-            />
-          </Grid>
-        ))}
-      </Grid>
-      
-      {(loading || isRefreshing) && (
-        <Box sx={{ p: 3 }}>
-          <Loader text={isRefreshing ? "Refreshing players..." : "Loading more players..."} />
-        </Box>
-      )}
-    </Box>
+      <Modal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        title={selectedPlayer?.playerName || 'Player Details'}
+        maxWidth="lg"
+      >
+        {selectedPlayer && <PlayerInfo playerId={selectedPlayer.id} />}
+      </Modal>
+    </>
   );
 };
 

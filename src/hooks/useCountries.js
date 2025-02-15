@@ -16,8 +16,12 @@ export const useCountries = () => {
   );
 
   useEffect(() => {
+    // console.log("countriesData", countriesData?.en);
+
     if (!countries.length && isCountriesSuccess) {
-      dispatch(setCountries(countriesData));
+      if(countriesData?.en){
+        dispatch(setCountries(countriesData.en));
+      }
     }
   }, [countries, countriesData, isCountriesSuccess, dispatch]);
 

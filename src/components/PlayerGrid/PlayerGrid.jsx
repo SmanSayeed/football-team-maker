@@ -14,6 +14,7 @@ import PlayerInfo from '../PlayerInfo/PlayerInfo';
 import Loader from '../../submodule/ui/Loader/Loader';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { usePlayers } from '../../hooks/usePlayers';
+import PlayerFilters from '../PlayerFilter/PlayerFilter';
 
 const ITEMS_PER_PAGE = 20;
 const LOADING_DELAY = 500;
@@ -42,6 +43,7 @@ const PlayerGrid = () => {
   const allPlayers = useSelector(selectPlayers);
   const searchFilteredPlayers = useSelector(selectFilteredPlayers);
   
+  // Component State
   const [displayedPlayers, setDisplayedPlayers] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -50,14 +52,22 @@ const PlayerGrid = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
   const [positionFilteredPlayers, setPositionFilteredPlayers] = useState(null);
+  const [activeFilters, setActiveFilters] = useState(null);
 
+  // Refs
   const observer = useRef();
   const timerRef = useRef();
+  
+  // Custom Hooks
   const { resetPlayers } = usePlayers();
 
+  // Memoized Values
   const basePlayerSet = useMemo(() => {
+    if (activeFilters) {
+      return searchFilteredPlayers;
+    }
     return searchFilteredPlayers || allPlayers;
-  }, [searchFilteredPlayers, allPlayers]);
+  }, [searchFilteredPlayers, allPlayers, activeFilters]);
 
   const filterPlayersByPosition = useCallback((players, tabIndex) => {
     if (!players?.length) return [];
@@ -76,6 +86,7 @@ const PlayerGrid = () => {
     return positionFilteredPlayers || basePlayerSet;
   }, [positionFilteredPlayers, basePlayerSet]);
 
+  // Event Handlers
   const handleTabChange = useCallback((event, newValue) => {
     setSelectedTab(newValue);
     setPage(1);
@@ -92,6 +103,7 @@ const PlayerGrid = () => {
     setDisplayedPlayers([]);
     setSelectedTab(0);
     setPositionFilteredPlayers(null);
+    setActiveFilters(null);
     dispatch(setFilteredPlayers(null));
     
     try {
@@ -114,6 +126,45 @@ const PlayerGrid = () => {
     setTimeout(() => setSelectedPlayer(null), 300);
   }, []);
 
+  const handleApplyFilters = useCallback((filters) => {
+    const { country, club, minValue, maxValue, minAge, maxAge } = filters;
+    
+    if (!allPlayers?.length) return;
+
+    const hasActiveFilters = Object.values(filters).some(value => value !== '');
+    setActiveFilters(hasActiveFilters ? filters : null);
+
+    const filteredPlayers = allPlayers.filter(player => {
+      const marketValue = parseFloat(player.marketValueAtThisTime);
+      const age = parseInt(player.ageAtThisTime);
+      
+      return (
+        (!country || player.countryID === country) &&
+        (!club || player.clubID === club) &&
+        (!minValue || marketValue >= parseFloat(minValue)) &&
+        (!maxValue || marketValue <= parseFloat(maxValue)) &&
+        (!minAge || age >= parseInt(minAge)) &&
+        (!maxAge || age <= parseInt(maxAge))
+      );
+    });
+
+    dispatch(setFilteredPlayers(filteredPlayers));
+    setPage(1);
+    setDisplayedPlayers([]);
+    setSelectedTab(0);
+    setPositionFilteredPlayers(null);
+  }, [allPlayers, dispatch]);
+
+  const handleClearFilters = useCallback(() => {
+    setActiveFilters(null);
+    dispatch(setFilteredPlayers(null));
+    setPage(1);
+    setDisplayedPlayers([]);
+    setSelectedTab(0);
+    setPositionFilteredPlayers(null);
+  }, [dispatch]);
+
+  // Infinite Scroll Logic
   const lastPlayerRef = useCallback(node => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
@@ -127,6 +178,7 @@ const PlayerGrid = () => {
     if (node) observer.current.observe(node);
   }, [loading, displayedPlayers.length, currentPlayers.length]);
 
+  // Effects
   useEffect(() => {
     const filteredByPosition = filterPlayersByPosition(basePlayerSet, selectedTab);
     setPositionFilteredPlayers(selectedTab === 0 ? null : filteredByPosition);
@@ -168,11 +220,19 @@ const PlayerGrid = () => {
       if (observer.current) {
         observer.current.disconnect();
       }
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
     };
   }, []);
 
   return (
     <Box sx={{ flexGrow: 1, py: 2 }}>
+      <PlayerFilters 
+        onFilter={handleApplyFilters}
+        onClear={handleClearFilters}
+      />
+
       <Box sx={{ 
         display: 'flex', 
         justifyContent: 'space-between', 

@@ -26,7 +26,9 @@ export const usePlayers = () => {
         playerName: player.playerName || player.name,
         playerImage: player.playerImage,
         clubName: player.clubName || player.club,
+        clubId: player.clubId || player.clubId,
         clubImage: player.clubImage,
+        countryID: player.countryID || player.nationID,
         countryImage: player.countryImage || player.nationImage,
         mainPosition: player.mainPosition || player.position,
         ageAtThisTime: player.ageAtThisTime || player.age,
@@ -49,7 +51,7 @@ export const usePlayers = () => {
       
       return (
         (!country || player.countryID === country) &&
-        (!club || player.clubID === club) &&
+        (!club || player.clubId === club) &&
         (!minValue || marketValue >= minValue) &&
         (!maxValue || marketValue <= maxValue) &&
         (!minAge || age >= minAge) &&

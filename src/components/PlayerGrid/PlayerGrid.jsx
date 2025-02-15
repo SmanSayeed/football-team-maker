@@ -38,6 +38,14 @@ const processPlayerData = (player) => {
   };
 };
 
+// Helper function to parse market value
+const parseMarketValue = (value) => {
+  if (!value) return 0;
+  // Remove currency symbol and 'm' or 'M' suffix, then convert to float
+  const numericValue = parseFloat(value.replace(/[€mM]/g, ''));
+  return isNaN(numericValue) ? 0 : numericValue;
+};
+
 const PlayerGrid = () => {
   const dispatch = useDispatch();
   const allPlayers = useSelector(selectPlayers);
@@ -128,24 +136,33 @@ const PlayerGrid = () => {
 
   const handleApplyFilters = useCallback((filters) => {
     const { country, club, minValue, maxValue, minAge, maxAge } = filters;
-    
+   
     if (!allPlayers?.length) return;
 
     const hasActiveFilters = Object.values(filters).some(value => value !== '');
     setActiveFilters(hasActiveFilters ? filters : null);
-
+    console.log("activeFilters ", activeFilters);
+  
     const filteredPlayers = allPlayers.filter(player => {
-      const marketValue = parseFloat(player.marketValueAtThisTime);
-      const age = parseInt(player.ageAtThisTime);
+      // console.log("player club - ", player);
+      // Convert string IDs to match filter values
+      const playerCountryId = player.countryID?.toString();
+      const playerClubId = player.clubId?.toString();
       
-      return (
-        (!country || player.countryID === country) &&
-        (!club || player.clubID === club) &&
-        (!minValue || marketValue >= parseFloat(minValue)) &&
-        (!maxValue || marketValue <= parseFloat(maxValue)) &&
-        (!minAge || age >= parseInt(minAge)) &&
-        (!maxAge || age <= parseInt(maxAge))
-      );
+      // Parse market value and age
+      const marketValue = parseMarketValue(player.marketValueAtThisTime);
+      const age = parseInt(player.ageAtThisTime) || 0;
+
+      // Apply filters
+      const countryMatch = !country || playerCountryId === country.toString();
+      const clubMatch = !club || playerClubId === club.toString();
+      const minValueMatch = !minValue || marketValue >= parseFloat(minValue);
+      const maxValueMatch = !maxValue || marketValue <= parseFloat(maxValue);
+      const minAgeMatch = !minAge || age >= parseInt(minAge);
+      const maxAgeMatch = !maxAge || age <= parseInt(maxAge);
+
+      return countryMatch && clubMatch && minValueMatch && 
+             maxValueMatch && minAgeMatch && maxAgeMatch;
     });
 
     dispatch(setFilteredPlayers(filteredPlayers));
@@ -156,6 +173,7 @@ const PlayerGrid = () => {
   }, [allPlayers, dispatch]);
 
   const handleClearFilters = useCallback(() => {
+    console.log("clearing...");
     setActiveFilters(null);
     dispatch(setFilteredPlayers(null));
     setPage(1);

@@ -21,7 +21,7 @@ const PlayerFilters = ({ onFilter, onClear }) => {
   });
 
   // Get unique clubs from players
-console.log("clubs ", clubs);
+// console.log("clubs ", clubs);
   const countryOptions =countries.length>0 && countries.map(country => ({
     value: country.id,
     label: country.name
@@ -35,7 +35,7 @@ console.log("clubs ", clubs);
   const handleFilterChange = useCallback((field, value) => {
     setFilters(prev => ({
       ...prev,
-      [field]: value
+      [field]: parseInt(value) || value,
     }));
   }, []);
 

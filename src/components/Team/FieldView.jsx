@@ -144,7 +144,7 @@ const FieldView = () => {
           positions={getPositionsForCategory('forwards')}
           bottomPosition="80%"
           onAddPlayer={handleAddPlayer}
-          onRemovePlayer={handlePlayerClick}
+          onRemovePlayer={handleRemovePlayer}
           onPlayerClick={handlePlayerClick}
         />
       </Paper>

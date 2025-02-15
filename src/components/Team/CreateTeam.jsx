@@ -105,11 +105,11 @@ const CreateTeam = () => {
 
       {formation && (
         <>
-          <PlayerSelection
+          {/* <PlayerSelection
             formation={formation}
             validations={validations}
-          />
-          <TeamOverview />
+          /> */}
+          {/* <TeamOverview /> */}
           <PositionView/>
         </>
       )}

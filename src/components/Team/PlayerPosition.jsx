@@ -14,6 +14,7 @@ const PlayerPosition = ({
   const isPlayerAssigned = player !== undefined && player !== null;
 
   const handleRemove = (event) => {
+    event.preventDefault();
     event.stopPropagation();
     onRemovePlayer(player.id, category);
   };
@@ -32,37 +33,53 @@ const PlayerPosition = ({
     >
       {isPlayerAssigned ? (
         <>
-          <Box 
-            sx={{ 
-              position: 'relative',
+          <Avatar
+            src={player.playerImage}
+            alt={player.playerName}
+            onClick={() => onPlayerClick(player)}
+            sx={{
+              width: 60,
+              height: 60,
+              border: '2px solid white',
+              cursor: 'pointer',
+              transition: 'transform 0.2s',
+              '&:hover': {
+                transform: 'scale(1.1)'
+              }
+            }}
+          />
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              bgcolor: 'rgba(0, 0, 0, 0.7)',
+              px: 1,
+              py: 0.5,
+              borderRadius: 1,
+              maxWidth: 'fit-content',
               '&:hover .delete-icon': {
                 opacity: 1
               }
             }}
           >
-            <Avatar
-              src={player.playerImage}
-              alt={player.playerName}
-              onClick={() => onPlayerClick(player)}
+            <Typography
+              variant="caption"
               sx={{
-                width: 60,
-                height: 60,
-                border: '2px solid white',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-                '&:hover': {
-                  transform: 'scale(1.1)'
-                }
+                color: 'white',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
               }}
-            />
+            >
+              {player.playerName}
+            </Typography>
             <IconButton
               className="delete-icon"
               size="small"
               onClick={handleRemove}
               sx={{
-                position: 'absolute',
-                top: -8,
-                right: -8,
+                p: 0.5,
                 bgcolor: 'error.main',
                 color: 'white',
                 opacity: 0,
@@ -70,29 +87,16 @@ const PlayerPosition = ({
                 '&:hover': {
                   bgcolor: 'error.dark'
                 },
-                zIndex: 1
+                minWidth: 20,
+                minHeight: 20,
+                '& .MuiSvgIcon-root': {
+                  fontSize: '0.875rem'
+                }
               }}
             >
-              <DeleteIcon fontSize="small" />
+              <DeleteIcon />
             </IconButton>
           </Box>
-          <Typography
-            variant="caption"
-            sx={{
-              color: 'white',
-              bgcolor: 'rgba(0, 0, 0, 0.7)',
-              px: 1,
-              py: 0.5,
-              borderRadius: 1,
-              maxWidth: 100,
-              textAlign: 'center',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}
-          >
-            {player.playerName}
-          </Typography>
         </>
       ) : (
         <Tooltip title={`Add ${category.slice(0, -1)}`}>

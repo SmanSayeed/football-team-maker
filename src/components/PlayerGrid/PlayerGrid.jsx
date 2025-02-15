@@ -1,30 +1,30 @@
+// PlayerGrid.jsx
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, IconButton, Tooltip } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useSelector } from 'react-redux';
-import { selectPlayers } from '../../redux/slices/playersSlice';
+import { selectPlayers, selectFilteredPlayers } from '../../redux/slices/playersSlice';
 import PlayerCard from '../../submodule/ui/PlayerCard/PlayerCard';
 import Loader from '../../submodule/ui/Loader/Loader';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { usePlayers } from '../../hooks/usePlayers';
 
-const ITEMS_PER_PAGE = 4;
-const LOADING_DELAY = 1000; // 1 second delay
+const ITEMS_PER_PAGE = 20;
+const LOADING_DELAY = 500; // Reduced from 1000ms to 500ms for better responsiveness
 
-// Function to validate and process player data
 const processPlayerData = (player) => {
+  if (!player) return null;
   return {
     ...player,
-    // Ensure image URLs are valid or provide null
     imageUrl: player.imageUrl && player.imageUrl.trim() !== '' ? player.imageUrl : null,
     clubImageUrl: player.clubImageUrl && player.clubImageUrl.trim() !== '' ? player.clubImageUrl : null,
     countryImageUrl: player.countryImageUrl && player.countryImageUrl.trim() !== '' ? player.countryImageUrl : null,
-    // Add any other necessary data processing here
   };
 };
 
 const PlayerGrid = () => {
   const allPlayers = useSelector(selectPlayers);
+  const filteredPlayers = useSelector(selectFilteredPlayers);
   const [displayedPlayers, setDisplayedPlayers] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -33,7 +33,9 @@ const PlayerGrid = () => {
   const timerRef = useRef();
   
   const { resetPlayers } = usePlayers();
-  console.log("all players - ", allPlayers);
+
+  // Get the current players to display (either filtered or all)
+  const currentPlayers = filteredPlayers || allPlayers;
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -42,10 +44,7 @@ const PlayerGrid = () => {
     setDisplayedPlayers([]);
     
     try {
-      const result = await resetPlayers();
-      if (!result.data?.data?.player) {
-        console.error('No player data received after refresh');
-      }
+      await resetPlayers();
     } catch (error) {
       console.error('Failed to refresh players:', error);
     } finally {
@@ -59,16 +58,22 @@ const PlayerGrid = () => {
     if (observer.current) observer.current.disconnect();
     
     observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && displayedPlayers.length < allPlayers.length) {
+      if (entries[0].isIntersecting && displayedPlayers.length < currentPlayers.length) {
         setPage(prevPage => prevPage + 1);
       }
     });
     
     if (node) observer.current.observe(node);
-  }, [loading, displayedPlayers.length, allPlayers.length]);
+  }, [loading, displayedPlayers.length, currentPlayers.length]);
+
+  // Reset page when switching between filtered and all players
+  useEffect(() => {
+    setPage(1);
+    setDisplayedPlayers([]);
+  }, [filteredPlayers]);
 
   useEffect(() => {
-    if (!allPlayers?.length) return;
+    if (!currentPlayers?.length) return;
     
     setLoading(true);
     
@@ -79,10 +84,11 @@ const PlayerGrid = () => {
     timerRef.current = setTimeout(() => {
       const start = 0;
       const end = page * ITEMS_PER_PAGE;
-      // Process players data before displaying
-      const processedPlayers = allPlayers
+      
+      const processedPlayers = currentPlayers
         .slice(start, end)
-        .map(processPlayerData);
+        .map(processPlayerData)
+        .filter(Boolean); // Remove any null values
       
       setDisplayedPlayers(processedPlayers);
       setLoading(false);
@@ -93,14 +99,14 @@ const PlayerGrid = () => {
         clearTimeout(timerRef.current);
       }
     };
-  }, [page, allPlayers]);
+  }, [page, currentPlayers]);
 
   const handleCardClick = (player) => {
     console.log('Player clicked:', player);
+    // Implement modal display logic here
   };
 
-  // Early return if no players
-  if (!allPlayers?.length && !loading && !isRefreshing) {
+  if (!currentPlayers?.length && !loading && !isRefreshing) {
     return (
       <Box sx={{ 
         flexGrow: 1, 
@@ -155,12 +161,11 @@ const PlayerGrid = () => {
       <Grid container spacing={3}>
         {displayedPlayers.map((player, index) => (
           <Grid 
-            item 
             xs={12} 
             sm={6} 
             md={4} 
             lg={3} 
-            key={`${player.id}-${player.year}`}
+            key={`${player.id}-${index}`}
             ref={index === displayedPlayers.length - 1 ? lastPlayerRef : null}
           >
             <PlayerCard 

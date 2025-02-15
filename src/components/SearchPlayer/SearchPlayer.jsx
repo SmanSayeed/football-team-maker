@@ -1,88 +1,126 @@
+// SearchPlayer.jsx
 import { Box, IconButton, InputAdornment } from "@mui/material";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import SearchInput from "../../submodule/ui/SearchInput/SearchInput";
-import { useDispatch, useSelector } from "react-redux";
-import { setPlayers, selectPlayers } from "../../redux/slices/playersSlice";
-import { useSearchPlayersQuery, useGetPlayersQuery } from "../../redux/apis/apiSlice";
+import { useDispatch } from "react-redux";
+import { setFilteredPlayers } from "../../redux/slices/playersSlice";
+import { useSearchPlayersQuery } from "../../redux/apis/apiSlice";
 import ClearIcon from '@mui/icons-material/Clear';
 import debounce from 'lodash.debounce';
+import { usePlayers } from "../../hooks/usePlayers";
+
+const processSearchResult = (player) => {
+  return {
+    id: player.id,
+    playerName: player.playerName,
+    clubName: player.club,
+    playerImage: player.playerImage,
+    clubImage: player.clubImage || null,
+    countryImage: player.nationImage,
+    mainPosition: player.position || 'Unknown',
+    ageAtThisTime: player.age || 'N/A',
+    marketValueAtThisTime: player.marketValue || 'N/A',
+    marketValueAtThisTimeCurrency: player.marketValueCurrency || '€',
+    marketValueAtThisTimeNumeral: player.marketValueNumeral || 'M'
+  };
+};
 
 export default function SearchPlayer() {
   const [inputValue, setInputValue] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showClear, setShowClear] = useState(false);
   const dispatch = useDispatch();
-  const allPlayers = useSelector(selectPlayers);
+  const { resetPlayers } = usePlayers();
+  const searchRequestCounter = useRef(0);
+  const isMounted = useRef(true);
 
-  // Get initial players data
-  const { data: initialPlayersData } = useGetPlayersQuery();
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
-  // Search query with skip option
-  const { data: searchData, isFetching } = useSearchPlayersQuery(searchTerm, {
+  const { data: searchData, isFetching, error } = useSearchPlayersQuery(searchTerm, {
     skip: !searchTerm || searchTerm.length < 3,
+    refetchOnMountOrArgChange: true,
   });
 
   // Debounced search function
   const debouncedSearch = useCallback(
     debounce((term) => {
-      setSearchTerm(term);
+      if (!isMounted.current) return;
+      
+      if (term.length >= 3) {
+        searchRequestCounter.current += 1;
+        setSearchTerm(term);
+      }
     }, 500),
     []
   );
 
-  // Handle input change
   const handleSearch = useCallback((event) => {
-    const value = event.target.value;
+    const value = event.target.value.trim();
     setInputValue(value);
     setShowClear(!!value);
     
     if (value.length >= 3) {
       debouncedSearch(value);
     } else if (value.length === 0) {
-      // Reset to initial players when search is cleared
-      if (initialPlayersData?.data?.player) {
-        dispatch(setPlayers(initialPlayersData.data.player));
-      }
-      setSearchTerm("");
-      setShowClear(false);
+      handleClearSearch();
     }
-  }, [debouncedSearch, dispatch, initialPlayersData]);
+  }, [debouncedSearch]);
 
-  // Update players in Redux when search results arrive
+  const handleClearSearch = useCallback(() => {
+    if (!isMounted.current) return;
+    
+    setInputValue("");
+    setSearchTerm("");
+    setShowClear(false);
+    resetPlayers(); // Reset to initial players
+  }, [resetPlayers]);
+
+  // Process search results
   useEffect(() => {
-    let isMounted = true;
+    if (!isMounted.current) return;
+    
+    const currentRequestId = searchRequestCounter.current;
 
-    if (searchTerm && searchData?.data?.players && allPlayers.length > 0) {
-      // Extract IDs from search results
-      const searchResultIds = searchData.data.players.map(player => player.id);
-      
-      // Filter players from Redux state by matching IDs and maintain search order
-      const matchedPlayers = searchResultIds
-        .map(searchId => allPlayers.find(player => player.id === searchId))
-        .filter(Boolean);
+    if (searchTerm && searchData?.data?.players) {
+      try {
+        // Ensure we're handling the most recent search request
+        if (currentRequestId === searchRequestCounter.current) {
+          // Process and map search results directly
+          const processedPlayers = searchData.data.players
+            .map(processSearchResult)
+            .filter(Boolean);
 
-      if (isMounted && matchedPlayers.length > 0) {
-        dispatch(setPlayers(matchedPlayers));
+          if (isMounted.current) {
+            dispatch(setFilteredPlayers(processedPlayers));
+          }
+        }
+      } catch (err) {
+        console.error('Error processing search results:', err);
+        if (isMounted.current) {
+          dispatch(setFilteredPlayers([]));
+        }
       }
     }
+  }, [searchData, dispatch, searchTerm]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [searchData, dispatch, searchTerm, allPlayers]);
+  // Handle search errors
+  useEffect(() => {
+    if (error && isMounted.current) {
+      console.error('Search API error:', error);
+      dispatch(setFilteredPlayers([]));
+    }
+  }, [error, dispatch]);
 
   const endAdornment = showClear ? (
     <InputAdornment position="end">
       <IconButton
         size="small"
-        onClick={() => {
-          setInputValue("");
-          setSearchTerm("");
-          setShowClear(false);
-          if (initialPlayersData?.data?.player) {
-            dispatch(setPlayers(initialPlayersData.data.player));
-          }
-        }}
+        onClick={handleClearSearch}
         sx={{ 
           p: 0.5,
           '&:hover': {
@@ -109,10 +147,16 @@ export default function SearchPlayer() {
         value={inputValue}
         onChange={handleSearch}
         disabled={isFetching}
-        InputProps={{ endAdornment }}
+        InputProps={{ 
+          endAdornment,
+          sx: {
+            '& .MuiOutlinedInput-root': {
+              pr: showClear ? 1 : 2
+            }
+          }
+        }}
         sx={{
           '& .MuiOutlinedInput-root': {
-            pr: showClear ? 1 : 2,
             transition: 'all 0.2s',
             '&:hover': {
               backgroundColor: 'rgba(0, 0, 0, 0.02)'

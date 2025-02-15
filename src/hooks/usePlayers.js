@@ -1,6 +1,7 @@
+// usePlayers.js
 import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectPlayers, setPlayers } from '../redux/slices/playersSlice';
+import { selectPlayers, setPlayers, setFilteredPlayers } from '../redux/slices/playersSlice';
 import { useGetPlayersQuery } from '../redux/apis/apiSlice';
 
 export const usePlayers = () => {
@@ -8,26 +9,41 @@ export const usePlayers = () => {
   const players = useSelector(selectPlayers);
   const initialFetchDone = useRef(false);
 
-  // Remove the skip option to allow refetching
   const { 
     data: playersData, 
     isSuccess: isPlayersSuccess,
     refetch,
     isLoading: isRefetching 
-  } = useGetPlayersQuery();
+  } = useGetPlayersQuery(undefined, {
+    refetchOnMountOrArgChange: true // Ensure we can refetch when needed
+  });
 
   useEffect(() => {
-    // Only update Redux on initial fetch or when explicitly refetching
+    // Handle initial data fetch
     if (isPlayersSuccess && playersData?.data?.player && !initialFetchDone.current) {
-      dispatch(setPlayers(playersData.data.player));
+      const processedPlayers = playersData.data.player.map(player => ({
+        id: player.id,
+        playerName: player.playerName || player.name,
+        playerImage: player.playerImage,
+        clubName: player.clubName || player.club,
+        clubImage: player.clubImage,
+        countryImage: player.countryImage || player.nationImage,
+        mainPosition: player.mainPosition || player.position,
+        ageAtThisTime: player.ageAtThisTime || player.age,
+        marketValueAtThisTime: player.marketValueAtThisTime || player.marketValue,
+        marketValueAtThisTimeCurrency: player.marketValueAtThisTimeCurrency || '€',
+        marketValueAtThisTimeNumeral: player.marketValueAtThisTimeNumeral || 'M'
+      }));
+      
+      dispatch(setPlayers(processedPlayers));
       initialFetchDone.current = true;
     }
   }, [playersData, isPlayersSuccess, dispatch]);
 
   const filterPlayers = ({ country, club, minValue, maxValue, minAge, maxAge }) => {
-    if (!playersData?.data?.player) return;
+    if (!players?.length) return;
 
-    const filteredPlayers = playersData.data.player.filter(player => {
+    const filteredPlayers = players.filter(player => {
       const marketValue = parseFloat(player.marketValueAtThisTime);
       const age = parseInt(player.ageAtThisTime);
       
@@ -41,15 +57,35 @@ export const usePlayers = () => {
       );
     });
 
-    dispatch(setPlayers(filteredPlayers));
+    dispatch(setFilteredPlayers(filteredPlayers));
   };
 
   const resetPlayers = async () => {
     try {
+      // Clear filtered players first
+      dispatch(setFilteredPlayers(null));
+      
+      // Refetch players data
       const result = await refetch();
+      
       if (result.data?.data?.player) {
-        dispatch(setPlayers(result.data.data.player));
+        const processedPlayers = result.data.data.player.map(player => ({
+          id: player.id,
+          playerName: player.playerName || player.name,
+          playerImage: player.playerImage,
+          clubName: player.clubName || player.club,
+          clubImage: player.clubImage,
+          countryImage: player.countryImage || player.nationImage,
+          mainPosition: player.mainPosition || player.position,
+          ageAtThisTime: player.ageAtThisTime || player.age,
+          marketValueAtThisTime: player.marketValueAtThisTime || player.marketValue,
+          marketValueAtThisTimeCurrency: player.marketValueAtThisTimeCurrency || '€',
+          marketValueAtThisTimeNumeral: player.marketValueAtThisTimeNumeral || 'M'
+        }));
+        
+        dispatch(setPlayers(processedPlayers));
       }
+      
       return result;
     } catch (error) {
       console.error('Error refetching players:', error);
@@ -61,6 +97,7 @@ export const usePlayers = () => {
     players,
     filterPlayers,
     resetPlayers,
-    isLoading: !isPlayersSuccess || isRefetching
+    isLoading: !isPlayersSuccess || isRefetching,
+    isSuccess: isPlayersSuccess
   };
 };
